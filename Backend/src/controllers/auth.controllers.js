@@ -24,7 +24,7 @@ const registerUserController = async(req, res) => {
             password: hashedPassword
         })
 
-        const token  = jwt.sign({Id: newUser._id , user:username}, process.env.JWT_SECRET, {expiresIn: "1d"})
+        const token  = jwt.sign({id: newUser._id , user:username}, process.env.JWT_SECRET, {expiresIn: "1d"})
 
         res.cookie("token", token ,{
             httpOnly: true,
@@ -104,6 +104,10 @@ const logoutController = async (req, res) => {
 const getMeController = async (req, res) => {
     try {
          const user  = await userModel.findById(req.user.id)
+
+         if (!user) {
+             return res.status(404).json({ message: "User not found" })
+         }
 
          res.status(200).json({
             message: "User details fetched successfully",

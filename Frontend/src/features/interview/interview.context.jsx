@@ -1,5 +1,5 @@
-import { createContext,useState } from "react";
-
+import { createContext, useState } from "react";
+/* eslint-disable react-refresh/only-export-components */
 
 export const InterviewContext = createContext()
 

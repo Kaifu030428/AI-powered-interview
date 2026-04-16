@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import '../style/interview.scss'
 import { useInterview } from '../hooks/useInterview.js'
-import { useNavigate, useParams } from 'react-router'
+import { useParams } from 'react-router'
 
 
 
@@ -66,6 +66,7 @@ const Interview = () => {
         if (interviewId) {
             getReportById(interviewId)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ interviewId ])
 
 

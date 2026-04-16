@@ -34,12 +34,30 @@ const interviewReportSchema = z.object({
 
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
 
+    const prompt = `
+    You are an interview preparation assistant.
 
-    const prompt = `Generate an interview report for a candidate with the following details:
-                        Resume: ${resume}
-                        Self Description: ${selfDescription}
-                        Job Description: ${jobDescription}
-`
+    Analyze the candidate profile and job description and generate a detailed interview report.
+
+    Candidate Resume:
+    ${resume}
+
+    Candidate Self Description:
+    ${selfDescription}
+
+    Target Job Description:
+    ${jobDescription}
+
+    Generate a JSON response with:
+    - title (job role)
+    - matchScore (0-100)
+    - technicalQuestions
+    - behavioralQuestions
+    - skillGaps
+    - preparationPlan (day-wise plan)
+
+    Return ONLY JSON. No extra text.
+    `
 
     const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
@@ -49,10 +67,21 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
             responseSchema: zodToJsonSchema(interviewReportSchema),
         }
     })
+    console.log("RAW AI RESPONSE:", response.text) 
+    
 
-    return JSON.parse(response.text)
+    const rawText = response.text;
 
+    const start = rawText.indexOf("{");
+    const end = rawText.lastIndexOf("}");
 
+    const jsonString = rawText.slice(start, end + 1);
+
+    const data = JSON.parse(jsonString);
+
+    console.log("AI DATA:", data);
+
+    return data;
 }
 
 

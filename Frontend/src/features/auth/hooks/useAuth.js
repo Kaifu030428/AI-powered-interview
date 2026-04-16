@@ -50,12 +50,14 @@ export  const useAuth = () => {
         try {
             const data = await getMe();
             setUser(data.user);
-        } catch (error) {} finally {
+        } catch (err) { 
+            // eslint-disable-next-line no-empty
+        } finally {
             setLoading(false);
         }
     };
     getAndSetUser();
-  }, []);
+  }, [setLoading, setUser]);
 
 
     return { user, loading, handleLogin, handleRegister, handleLogout };

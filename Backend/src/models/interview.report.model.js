@@ -46,6 +46,7 @@ const skillGapSchema  = new mongoose.Schema({
     severity:{
         type:String,
         enum:["Low", "Medium", "High"],
+        default: "Medium",
     }
 })
 
@@ -71,6 +72,9 @@ const preparationPlanSchema = new mongoose.Schema({
 
 
 const interviewReportSchema = new mongoose.Schema({
+    title:{
+        type:String
+    },
     jobDescription:{
         type:String,
         required:[true, "Job description is required"]    

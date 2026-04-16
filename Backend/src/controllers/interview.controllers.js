@@ -19,28 +19,71 @@ const generateInterviewReportController = async (req, res) => {
       }
   
       let resumeText = "";
-  
       if (req.file) {
-        const resumeContent = await new pdfParse.PDFParse(
-          Uint8Array.from(req.file.buffer)
-        ).getText();
-  
-        resumeText = resumeContent.text;
+        if (req.file.mimetype !== "application/pdf") {
+            return res.status(400).json({ message: "Invalid file type. Only PDF is supported." });
+        }
+        try {
+            const data = await pdfParse(req.file.buffer);
+            resumeText = data.text;
+        } catch(err) {
+            console.error("PDF Parse Error:", err);
+            return res.status(400).json({ message: "Failed to read PDF file. It might be corrupted." });
+        }
       }
   
+      // ✅ AI CALL (ye missing tha isliye error aaya)
       const interviewReportByAi = await generateInterviewReport({
         resume: resumeText,
         selfDescription,
         jobDescription,
       });
   
-      const interviewReport = await interviewReportModel.create({
-        user: req.user.Id,
+      // ✅ FORMAT DATA FOR MONGODB
+      const aiData = interviewReportByAi;
+  
+      const formattedData = {
+        user: req.user.id,
         resume: resumeText,
         selfDescription,
         jobDescription,
-        ...interviewReportByAi,
-      });
+  
+        title: aiData.title,
+        matchScore: aiData.matchScore,
+  
+        technicalQuestions: (aiData.technicalQuestions || []).map((q) => ({
+          question: typeof q === 'string' ? q : (q.question || "No question provided"),
+          intention: typeof q === 'string' ? "To test technical knowledge" : (q.intention || "To test technical knowledge"),
+          answer: typeof q === 'string' ? "Explain with examples and projects" : (q.answer || "Explain with examples and projects"),
+        })),
+  
+        behavioralQuestions: (aiData.behavioralQuestions || []).map((q) => ({
+          question: typeof q === 'string' ? q : (q.question || "No question provided"),
+          intention: typeof q === 'string' ? "To evaluate behavior" : (q.intention || "To evaluate behavior"),
+          answer: typeof q === 'string' ? "Use STAR method" : (q.answer || "Use STAR method"),
+        })),
+  
+        skillGaps: (aiData.skillGaps || []).map((skill) => ({
+          skill: typeof skill === 'string' ? skill : (skill.skill || "Unknown"),
+          severity: (typeof skill === 'object' && skill.severity) 
+                      ? (String(skill.severity).charAt(0).toUpperCase() + String(skill.severity).slice(1).toLowerCase()) 
+                      : "Medium",
+        })),
+  
+        preparationPlan: (Array.isArray(aiData.preparationPlan) 
+          ? aiData.preparationPlan 
+          : (typeof aiData.preparationPlan === 'string' 
+              ? (()=>{ try{ const p=JSON.parse(aiData.preparationPlan); return typeof p==='object'?Object.values(p):[p] }catch{return [aiData.preparationPlan]} })() 
+              : Object.values(aiData.preparationPlan||{}) )
+        ).map((item, index) => ({
+          day: typeof item === 'object' && item.day ? item.day : index + 1,
+          focus: typeof item === 'object' && item.focus ? item.focus : String(item),
+          tasks: typeof item === 'object' && Array.isArray(item.tasks) ? item.tasks : [String(item)],
+        })),
+      };
+  
+      // ✅ SAVE TO DB
+      const interviewReport = await interviewReportModel.create(formattedData);
   
       res.status(200).json(interviewReport);
     } catch (error) {
@@ -51,7 +94,7 @@ const generateInterviewReportController = async (req, res) => {
 
 async function getAllInterviewReportsController(req, res) {
   const interviewReports = await interviewReportModel
-    .find({ user: req.user.Id })
+    .find({ user: req.user.id })
     .sort({ createdAt: -1 })
     .select(
       "-resume -selfDescription -jobDescription -__v -technicalQuestions -behavioralQuestions -skillGaps -preparationPlan"
