@@ -2,7 +2,7 @@ import axios from "axios";
 
 
 const api = axios.create({
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:8000',
     withCredentials: true
 });
 export default api; 
@@ -57,7 +57,7 @@ export async function getMe(){
         return response.data;
 
     } catch (error) {
-        if (error.response && error.response.status !== 404) {
+        if (error.response && error.response.status !== 404 && error.response.status !== 401) {
             console.error("Error fetching user data:", error);
         }
         throw error;

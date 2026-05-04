@@ -119,10 +119,10 @@ const Interview = () => {
                         <section>
                             <div className='content-header'>
                                 <h2>Technical Questions</h2>
-                                <span className='content-header__count'>{report.technicalQuestions.length} questions</span>
+                                <span className='content-header__count'>{report.technicalQuestions?.length || 0} questions</span>
                             </div>
                             <div className='q-list'>
-                                {report.technicalQuestions.map((q, i) => (
+                                {(report.technicalQuestions || []).map((q, i) => (
                                     <QuestionCard key={i} item={q} index={i} />
                                 ))}
                             </div>
@@ -133,10 +133,10 @@ const Interview = () => {
                         <section>
                             <div className='content-header'>
                                 <h2>Behavioral Questions</h2>
-                                <span className='content-header__count'>{report.behavioralQuestions.length} questions</span>
+                                <span className='content-header__count'>{report.behavioralQuestions?.length || 0} questions</span>
                             </div>
                             <div className='q-list'>
-                                {report.behavioralQuestions.map((q, i) => (
+                                {(report.behavioralQuestions || []).map((q, i) => (
                                     <QuestionCard key={i} item={q} index={i} />
                                 ))}
                             </div>
@@ -147,10 +147,10 @@ const Interview = () => {
                         <section>
                             <div className='content-header'>
                                 <h2>Preparation Road Map</h2>
-                                <span className='content-header__count'>{report.preparationPlan.length}-day plan</span>
+                                <span className='content-header__count'>{report.preparationPlan?.length || 0}-day plan</span>
                             </div>
                             <div className='roadmap-list'>
-                                {report.preparationPlan.map((day) => (
+                                {(report.preparationPlan || []).map((day) => (
                                     <RoadMapDay key={day.day} day={day} />
                                 ))}
                             </div>
@@ -179,7 +179,7 @@ const Interview = () => {
                     <div className='skill-gaps'>
                         <p className='skill-gaps__label'>Skill Gaps</p>
                         <div className='skill-gaps__list'>
-                            {report.skillGaps.map((gap, i) => (
+                            {(report.skillGaps || []).map((gap, i) => (
                                 <span key={i} className={`skill-tag skill-tag--${gap.severity}`}>
                                     {gap.skill}
                                 </span>

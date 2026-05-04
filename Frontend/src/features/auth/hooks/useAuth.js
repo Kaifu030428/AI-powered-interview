@@ -50,8 +50,11 @@ export  const useAuth = () => {
         try {
             const data = await getMe();
             setUser(data.user);
-        } catch (err) { 
-            // eslint-disable-next-line no-empty
+        } catch (error) {
+            // Ignore 401s as they are expected for unauthenticated users
+            if (error.response && error.response.status !== 401) {
+                console.error("Auth check failed:", error);
+            }
         } finally {
             setLoading(false);
         }

@@ -21,8 +21,8 @@ export const useInterview = () => {
         let response = null
         try {
             response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
-            setReport(response.interviewReport)
-            return response.interviewReport
+            setReport(response)
+            return response
         } catch (error) {
             console.log(error)
             return null
@@ -36,8 +36,8 @@ export const useInterview = () => {
         let response = null
         try {
             response = await getInterviewReportById(interviewId)
-            setReport(response.interviewReport)
-            return response.interviewReport
+            setReport(response)
+            return response
         } catch (error) {
             console.log(error)
             return null

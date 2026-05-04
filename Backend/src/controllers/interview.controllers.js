@@ -1,6 +1,7 @@
 const pdfParse = require("pdf-parse");
 const { generateInterviewReport } = require("../services/ai.service");
 const interviewReportModel = require("../models/interview.report.model");
+const { get } = require("mongoose");
 
 const generateInterviewReportController = async (req, res) => {
     try {
@@ -51,17 +52,35 @@ const generateInterviewReportController = async (req, res) => {
         title: aiData.title,
         matchScore: aiData.matchScore,
   
-        technicalQuestions: (aiData.technicalQuestions || []).map((q) => ({
-          question: typeof q === 'string' ? q : (q.question || "No question provided"),
-          intention: typeof q === 'string' ? "To test technical knowledge" : (q.intention || "To test technical knowledge"),
-          answer: typeof q === 'string' ? "Explain with examples and projects" : (q.answer || "Explain with examples and projects"),
-        })),
+        technicalQuestions: (aiData.technicalQuestions || []).map((q) => {
+          if (typeof q === 'string') {
+            return {
+              question: q,
+              intention: "To test technical knowledge",
+              answer: "Explain with examples and projects"
+            };
+          }
+          return {
+            question: q.question || q.Question || "No question provided",
+            intention: q.intention || q.Intention || "To test technical knowledge",
+            answer: q.answer || q.Answer || q.expectedAnswer || "Explain with examples and projects"
+          };
+        }),
   
-        behavioralQuestions: (aiData.behavioralQuestions || []).map((q) => ({
-          question: typeof q === 'string' ? q : (q.question || "No question provided"),
-          intention: typeof q === 'string' ? "To evaluate behavior" : (q.intention || "To evaluate behavior"),
-          answer: typeof q === 'string' ? "Use STAR method" : (q.answer || "Use STAR method"),
-        })),
+        behavioralQuestions: (aiData.behavioralQuestions || []).map((q) => {
+          if (typeof q === 'string') {
+            return {
+              question: q,
+              intention: "To evaluate behavior",
+              answer: "Use STAR method"
+            };
+          }
+          return {
+            question: q.question || q.Question || "No question provided",
+            intention: q.intention || q.Intention || "To evaluate behavior",
+            answer: q.answer || q.Answer || q.expectedAnswer || "Use STAR method"
+          };
+        }),
   
         skillGaps: (aiData.skillGaps || []).map((skill) => ({
           skill: typeof skill === 'string' ? skill : (skill.skill || "Unknown"),
@@ -133,9 +152,28 @@ async function generateResumePdfController(req, res) {
 
   res.send(pdfBuffer);
 }
+ 
+async function getInterviewReportByIdController(req, res) {
+
+    const { interviewReportId } = req.params
+
+    const interviewReport = await interviewReportModel.findOne({ _id: interviewReportId, user: req.user.id })
+
+    if (!interviewReport) {
+        return res.status(404).json({
+            message: "Interview report not found."
+        })
+    }
+
+    res.status(200).json({
+        message: "Interview report fetched successfully.",
+        interviewReport
+    })
+}
 
 module.exports = {
   generateInterviewReportController,
   getAllInterviewReportsController,
   generateResumePdfController,
+  getInterviewReportByIdController
 };
